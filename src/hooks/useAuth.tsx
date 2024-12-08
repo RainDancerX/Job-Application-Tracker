@@ -1,13 +1,17 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-03 01:19:01
+ * @LastEditTime: 2024-12-08 13:21:01
  * @Description:
  */
 import { getStoredUser, setStoredUser } from '@/lib/auth';
 import React from 'react';
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
 
 export interface AuthContext {
   isAuthenticated: boolean;
@@ -39,8 +43,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(user);
   }, []);
 
+  // React.useEffect(() => {
+  //   setUser(getStoredUser());
+  // }, []);
+
   React.useEffect(() => {
-    setUser(getStoredUser());
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      const email = firebaseUser?.email ?? null;
+      console.log('Auth state changed:', email);
+      setStoredUser(email);
+      setUser(email);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (

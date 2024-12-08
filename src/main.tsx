@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-03 01:52:49
+ * @LastEditTime: 2024-12-08 15:20:42
  * @Description:
  */
 import { StrictMode } from 'react';
@@ -19,7 +19,12 @@ const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   context: {
-    auth: undefined!, // This will be set after we wrap the app in an AuthProvider
+    auth: {
+      isAuthenticated: false,
+      user: null,
+      login: async () => {},
+      logout: async () => {},
+    },
   },
 });
 
