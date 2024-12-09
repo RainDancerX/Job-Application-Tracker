@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-08 05:23:38
+ * @LastEditTime: 2024-12-08 16:17:01
  * @Description:
  */
 import { Link } from '@/components/ui/link';
@@ -66,18 +66,13 @@ function RootComponent() {
             </Link>
           </section>
           <section className="inline-flex items-center justify-start gap-4 p-2 flex-grow">
-            <Link
+            {/* <Link
               to="/categories/$category"
-              params={{ category: 'men' }}
               usage="nav"
             >
               Dashboard
-            </Link>
-            <Link
-              to="/categories/$category"
-              params={{ category: 'women' }}
-              usage="nav"
-            >
+            </Link> */}
+            <Link to="/applications" usage="nav">
               Applications
             </Link>
           </section>

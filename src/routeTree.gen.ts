@@ -17,9 +17,9 @@ import { Route as appIndexImport } from './routes/(app)/index'
 import { Route as authSignupImport } from './routes/(auth)/signup'
 import { Route as authLoginImport } from './routes/(auth)/login'
 import { Route as authAuthImport } from './routes/(auth)/_auth'
+import { Route as appApplicationsImport } from './routes/(app)/applications'
 import { Route as appAboutImport } from './routes/(app)/about'
 import { Route as authAuthProfileImport } from './routes/(auth)/_auth.profile'
-import { Route as appCategoriesCategoryImport } from './routes/(app)/categories/$category'
 
 // Create Virtual Routes
 
@@ -55,6 +55,12 @@ const authAuthRoute = authAuthImport.update({
   getParentRoute: () => authRoute,
 } as any)
 
+const appApplicationsRoute = appApplicationsImport.update({
+  id: '/(app)/applications',
+  path: '/applications',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const appAboutRoute = appAboutImport.update({
   id: '/(app)/about',
   path: '/about',
@@ -67,12 +73,6 @@ const authAuthProfileRoute = authAuthProfileImport.update({
   getParentRoute: () => authAuthRoute,
 } as any)
 
-const appCategoriesCategoryRoute = appCategoriesCategoryImport.update({
-  id: '/(app)/categories/$category',
-  path: '/categories/$category',
-  getParentRoute: () => rootRoute,
-} as any)
-
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -82,6 +82,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof appAboutImport
+      parentRoute: typeof rootRoute
+    }
+    '/(app)/applications': {
+      id: '/(app)/applications'
+      path: '/applications'
+      fullPath: '/applications'
+      preLoaderRoute: typeof appApplicationsImport
       parentRoute: typeof rootRoute
     }
     '/(auth)': {
@@ -117,13 +124,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof appIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/(app)/categories/$category': {
-      id: '/(app)/categories/$category'
-      path: '/categories/$category'
-      fullPath: '/categories/$category'
-      preLoaderRoute: typeof appCategoriesCategoryImport
       parentRoute: typeof rootRoute
     }
     '/(auth)/_auth/profile': {
@@ -166,31 +166,31 @@ const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/about': typeof appAboutRoute
+  '/applications': typeof appApplicationsRoute
   '/': typeof appIndexRoute
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
-  '/categories/$category': typeof appCategoriesCategoryRoute
   '/profile': typeof authAuthProfileRoute
 }
 
 export interface FileRoutesByTo {
   '/about': typeof appAboutRoute
+  '/applications': typeof appApplicationsRoute
   '/': typeof appIndexRoute
   '/login': typeof authLoginRoute
   '/signup': typeof authSignupRoute
-  '/categories/$category': typeof appCategoriesCategoryRoute
   '/profile': typeof authAuthProfileRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/(app)/about': typeof appAboutRoute
+  '/(app)/applications': typeof appApplicationsRoute
   '/(auth)': typeof authRouteWithChildren
   '/(auth)/_auth': typeof authAuthRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/signup': typeof authSignupRoute
   '/(app)/': typeof appIndexRoute
-  '/(app)/categories/$category': typeof appCategoriesCategoryRoute
   '/(auth)/_auth/profile': typeof authAuthProfileRoute
 }
 
@@ -198,44 +198,38 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/about'
+    | '/applications'
     | '/'
     | '/login'
     | '/signup'
-    | '/categories/$category'
     | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/about'
-    | '/'
-    | '/login'
-    | '/signup'
-    | '/categories/$category'
-    | '/profile'
+  to: '/about' | '/applications' | '/' | '/login' | '/signup' | '/profile'
   id:
     | '__root__'
     | '/(app)/about'
+    | '/(app)/applications'
     | '/(auth)'
     | '/(auth)/_auth'
     | '/(auth)/login'
     | '/(auth)/signup'
     | '/(app)/'
-    | '/(app)/categories/$category'
     | '/(auth)/_auth/profile'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   appAboutRoute: typeof appAboutRoute
+  appApplicationsRoute: typeof appApplicationsRoute
   authRoute: typeof authRouteWithChildren
   appIndexRoute: typeof appIndexRoute
-  appCategoriesCategoryRoute: typeof appCategoriesCategoryRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   appAboutRoute: appAboutRoute,
+  appApplicationsRoute: appApplicationsRoute,
   authRoute: authRouteWithChildren,
   appIndexRoute: appIndexRoute,
-  appCategoriesCategoryRoute: appCategoriesCategoryRoute,
 }
 
 export const routeTree = rootRoute
@@ -249,13 +243,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/(app)/about",
+        "/(app)/applications",
         "/(auth)",
-        "/(app)/",
-        "/(app)/categories/$category"
+        "/(app)/"
       ]
     },
     "/(app)/about": {
       "filePath": "(app)/about.tsx"
+    },
+    "/(app)/applications": {
+      "filePath": "(app)/applications.tsx"
     },
     "/(auth)": {
       "filePath": "(auth)",
@@ -282,9 +279,6 @@ export const routeTree = rootRoute
     },
     "/(app)/": {
       "filePath": "(app)/index.tsx"
-    },
-    "/(app)/categories/$category": {
-      "filePath": "(app)/categories/$category.tsx"
     },
     "/(auth)/_auth/profile": {
       "filePath": "(auth)/_auth.profile.tsx",

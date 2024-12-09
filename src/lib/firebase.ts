@@ -1,10 +1,17 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
+ * @Date: 2024-12-03 01:17:23
+ * @LastEditTime: 2024-12-08 16:14:06
+ * @Description:
+ */
+/*
+ * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-28 17:42:02
- * @LastEditTime: 2024-12-08 02:08:14
+ * @LastEditTime: 2024-12-08 16:13:24
  * @Description:
  */
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -19,6 +26,9 @@ const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Firestore reference
+export const db = getFirestore(app);
 
 // Firebase: Import the functions you need from the SDKs you need
 // import { auth } from '../lib/firebase';
