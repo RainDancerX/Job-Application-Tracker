@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-08 15:20:42
+ * @LastEditTime: 2024-12-09 00:47:23
  * @Description:
  */
 import { StrictMode } from 'react';
@@ -13,6 +13,7 @@ import './styles/globals.css';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { Toaster } from '@/components/ui/toaster';
 
 // Create a new router instance
 const router = createRouter({
@@ -44,6 +45,7 @@ function App() {
   return (
     <AuthProvider>
       <InnerApp />
+      <Toaster />
     </AuthProvider>
   );
 }

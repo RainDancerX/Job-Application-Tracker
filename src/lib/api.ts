@@ -10,15 +10,23 @@ import {
   Timestamp,
   where,
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import type { JobApplication } from '@/types';
 
-const APPLICATIONS_COLLECTION = 'job_applications';
+const getUserCollection = () => {
+  const user = auth.currentUser;
+  if (!user?.email) {
+    throw new Error('Please sign in to access your applications');
+  }
+  const safeEmail = user.email.replace(/[.#$[\]]/g, '_');
+  return `users/${safeEmail}/job_applications`;
+};
 
 export async function fetchApplications(): Promise<JobApplication[]> {
   try {
+    const collectionPath = getUserCollection();
     const q = query(
-      collection(db, APPLICATIONS_COLLECTION),
+      collection(db, collectionPath),
       orderBy('applicationDate', 'desc')
     );
     const querySnapshot = await getDocs(q);
@@ -36,7 +44,8 @@ export async function addApplication(
   application: Omit<JobApplication, 'id'>
 ): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, APPLICATIONS_COLLECTION), {
+    const collectionPath = getUserCollection();
+    const docRef = await addDoc(collection(db, collectionPath), {
       ...application,
       applicationDate:
         application.applicationDate || new Date().toISOString().split('T')[0],
@@ -53,7 +62,8 @@ export async function updateApplication(
   application: Partial<JobApplication>
 ): Promise<void> {
   try {
-    const docRef = doc(db, APPLICATIONS_COLLECTION, id);
+    const collectionPath = getUserCollection();
+    const docRef = doc(db, collectionPath, id);
     await updateDoc(docRef, application);
   } catch (error) {
     console.error('Error updating application:', error);
@@ -63,7 +73,8 @@ export async function updateApplication(
 
 export async function deleteApplication(id: string): Promise<void> {
   try {
-    const docRef = doc(db, APPLICATIONS_COLLECTION, id);
+    const collectionPath = getUserCollection();
+    const docRef = doc(db, collectionPath, id);
     await deleteDoc(docRef);
   } catch (error) {
     console.error('Error deleting application:', error);
@@ -75,8 +86,9 @@ export async function fetchApplicationsByStatus(
   status: JobApplication['status']
 ): Promise<JobApplication[]> {
   try {
+    const collectionPath = getUserCollection();
     const q = query(
-      collection(db, APPLICATIONS_COLLECTION),
+      collection(db, collectionPath),
       where('status', '==', status),
       orderBy('applicationDate', 'desc')
     );

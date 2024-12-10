@@ -1,3 +1,9 @@
+/*
+ * @Author: lucas Liu lantasy.io@gmail.com
+ * @Date: 2024-12-08 16:22:05
+ * @LastEditTime: 2024-12-09 03:00:03
+ * @Description:
+ */
 export interface OfferDetails {
   salary: string;
   benefits: string[];
@@ -6,12 +12,19 @@ export interface OfferDetails {
 
 export interface JobApplication {
   id: string;
-  jobTitle: string;
   companyName: string;
+  companyIndustry?: string;
+  jobTitle: string;
   location: string;
   applicationDate: string;
   jobPostingLink: string;
-  status: 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Accepted';
+  status:
+    | 'Applied'
+    | 'Interview Scheduled'
+    | 'Interviewed'
+    | 'Offer'
+    | 'Rejected'
+    | 'Accepted';
   jobType: string;
   salaryRange: string;
   contactPerson: string;

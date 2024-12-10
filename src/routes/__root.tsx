@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-08 16:17:01
+ * @LastEditTime: 2024-12-09 00:54:13
  * @Description:
  */
 import { Link } from '@/components/ui/link';
@@ -31,10 +31,11 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: ({ context, location }) => {
-    // Don't redirect if already on login page
+    // Don't redirect if already on login page or signup page
     if (
       !context.auth.isAuthenticated &&
-      !location.pathname.includes('/login')
+      !location.pathname.includes('/login') &&
+      !location.pathname.includes('/signup')
     ) {
       throw redirect({
         to: '/login',

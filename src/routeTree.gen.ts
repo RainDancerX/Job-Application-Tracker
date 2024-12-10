@@ -18,7 +18,6 @@ import { Route as authSignupImport } from './routes/(auth)/signup'
 import { Route as authLoginImport } from './routes/(auth)/login'
 import { Route as authAuthImport } from './routes/(auth)/_auth'
 import { Route as appApplicationsImport } from './routes/(app)/applications'
-import { Route as appAboutImport } from './routes/(app)/about'
 import { Route as authAuthProfileImport } from './routes/(auth)/_auth.profile'
 
 // Create Virtual Routes
@@ -61,12 +60,6 @@ const appApplicationsRoute = appApplicationsImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const appAboutRoute = appAboutImport.update({
-  id: '/(app)/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const authAuthProfileRoute = authAuthProfileImport.update({
   id: '/profile',
   path: '/profile',
@@ -77,13 +70,6 @@ const authAuthProfileRoute = authAuthProfileImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/(app)/about': {
-      id: '/(app)/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof appAboutImport
-      parentRoute: typeof rootRoute
-    }
     '/(app)/applications': {
       id: '/(app)/applications'
       path: '/applications'
@@ -165,7 +151,6 @@ const authRouteChildren: authRouteChildren = {
 const authRouteWithChildren = authRoute._addFileChildren(authRouteChildren)
 
 export interface FileRoutesByFullPath {
-  '/about': typeof appAboutRoute
   '/applications': typeof appApplicationsRoute
   '/': typeof appIndexRoute
   '/login': typeof authLoginRoute
@@ -174,7 +159,6 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
-  '/about': typeof appAboutRoute
   '/applications': typeof appApplicationsRoute
   '/': typeof appIndexRoute
   '/login': typeof authLoginRoute
@@ -184,7 +168,6 @@ export interface FileRoutesByTo {
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/(app)/about': typeof appAboutRoute
   '/(app)/applications': typeof appApplicationsRoute
   '/(auth)': typeof authRouteWithChildren
   '/(auth)/_auth': typeof authAuthRouteWithChildren
@@ -196,18 +179,11 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/about'
-    | '/applications'
-    | '/'
-    | '/login'
-    | '/signup'
-    | '/profile'
+  fullPaths: '/applications' | '/' | '/login' | '/signup' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/about' | '/applications' | '/' | '/login' | '/signup' | '/profile'
+  to: '/applications' | '/' | '/login' | '/signup' | '/profile'
   id:
     | '__root__'
-    | '/(app)/about'
     | '/(app)/applications'
     | '/(auth)'
     | '/(auth)/_auth'
@@ -219,14 +195,12 @@ export interface FileRouteTypes {
 }
 
 export interface RootRouteChildren {
-  appAboutRoute: typeof appAboutRoute
   appApplicationsRoute: typeof appApplicationsRoute
   authRoute: typeof authRouteWithChildren
   appIndexRoute: typeof appIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  appAboutRoute: appAboutRoute,
   appApplicationsRoute: appApplicationsRoute,
   authRoute: authRouteWithChildren,
   appIndexRoute: appIndexRoute,
@@ -242,14 +216,10 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/(app)/about",
         "/(app)/applications",
         "/(auth)",
         "/(app)/"
       ]
-    },
-    "/(app)/about": {
-      "filePath": "(app)/about.tsx"
     },
     "/(app)/applications": {
       "filePath": "(app)/applications.tsx"
