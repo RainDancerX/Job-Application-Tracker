@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-12-08 16:15:40
- * @LastEditTime: 2024-12-09 23:09:07
+ * @LastEditTime: 2024-12-10 01:54:10
  * @Description:
  */
 import { createFileRoute, useRouter } from '@tanstack/react-router';
@@ -30,6 +30,14 @@ import {
 } from '@/components/ui/pagination';
 // import { useAuth } from '@/hooks/useAuth';
 import { auth } from '@/lib/firebase';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface LoaderData {
   applications: JobApplication[];
@@ -105,6 +113,10 @@ function ApplicationsPage() {
   const router = useRouter();
   const { applications, isLoading } = Route.useLoaderData() as LoaderData;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] = useState<string | null>(
+    null
+  );
   const [selectedApplication, setSelectedApplication] =
     useState<JobApplication | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,10 +154,16 @@ function ApplicationsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this application?')) {
-      await deleteApplication(id);
-      // Invalidate the route data instead of page refresh
+    setApplicationToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (applicationToDelete) {
+      await deleteApplication(applicationToDelete);
       await router.invalidate();
+      setIsDeleteDialogOpen(false);
+      setApplicationToDelete(null);
     }
   };
 
@@ -276,6 +294,29 @@ function ApplicationsPage() {
         application={selectedApplication}
         onClose={handleClose}
       />
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Application</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this application? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
