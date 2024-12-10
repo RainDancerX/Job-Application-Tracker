@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-03 01:52:43
+ * @LastEditTime: 2024-12-10 02:01:29
  * @Description:
  */
 import { defineConfig } from 'vite';
@@ -30,6 +30,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
     },
   },
 });
