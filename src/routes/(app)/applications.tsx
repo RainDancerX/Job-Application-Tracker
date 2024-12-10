@@ -1,10 +1,10 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-12-08 16:15:40
- * @LastEditTime: 2024-12-09 16:51:35
+ * @LastEditTime: 2024-12-09 23:09:07
  * @Description:
  */
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { fetchApplications, deleteApplication } from '@/lib/api';
 import type { JobApplication } from '@/types';
 import {
@@ -102,6 +102,7 @@ function getPriorityColor(priority: JobApplication['priorityLevel']) {
 }
 
 function ApplicationsPage() {
+  const router = useRouter();
   const { applications, isLoading } = Route.useLoaderData() as LoaderData;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] =
@@ -133,17 +134,18 @@ function ApplicationsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     setSelectedApplication(null);
     setIsDialogOpen(false);
-    window.location.reload();
+    // Invalidate the route data to refresh applications
+    await router.invalidate();
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this application?')) {
       await deleteApplication(id);
-      // Refresh the page to reload the data
-      window.location.reload();
+      // Invalidate the route data instead of page refresh
+      await router.invalidate();
     }
   };
 

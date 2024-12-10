@@ -90,11 +90,13 @@ function formReducer(state: FormState, action: FormAction): FormState {
         formData: {
           ...state.formData,
           offerDetails: {
-            ...(state.formData.offerDetails || {}),
+            ...state.formData.offerDetails,
             benefits: [
               ...(state.formData.offerDetails?.benefits || []),
               action.benefit,
             ],
+            salary: state.formData.offerDetails?.salary || '',
+            joiningDate: state.formData.offerDetails?.joiningDate || '',
           },
         },
         benefitInput: '',
@@ -105,13 +107,16 @@ function formReducer(state: FormState, action: FormAction): FormState {
         formData: {
           ...state.formData,
           offerDetails: {
-            ...(state.formData.offerDetails || {}),
+            ...state.formData.offerDetails,
             benefits:
-              state.formData.offerDetails?.benefits?.filter(
-                (benefit) => benefit !== action.benefit
+              state.formData.offerDetails?.benefits.filter(
+                (b) => b !== action.benefit
               ) || [],
+            salary: state.formData.offerDetails?.salary || '',
+            joiningDate: state.formData.offerDetails?.joiningDate || '',
           },
         },
+        benefitInput: '',
       };
     case 'SET_SKILL_INPUT':
       return {
@@ -141,6 +146,11 @@ const defaultFormData: Partial<JobApplication> = {
   applicationDate: new Date().toISOString().split('T')[0],
   coverLetter: false,
   skillsRequired: [],
+  offerDetails: {
+    salary: '',
+    benefits: [],
+    joiningDate: '',
+  },
 };
 
 export function ApplicationDialog({
@@ -190,7 +200,7 @@ export function ApplicationDialog({
       } else {
         await addApplication(formData as Omit<JobApplication, 'id'>);
       }
-      handleClose();
+      onClose();
     } catch (error) {
       console.error('Error saving application:', error);
     }

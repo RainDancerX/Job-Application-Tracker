@@ -35,7 +35,7 @@ export const Route = createFileRoute('/(auth)/signup')({
   component: SignupPage,
 });
 
-const fallback = '/' as const;
+// const fallback = '/' as const;
 
 interface FormElements extends HTMLFormControlsCollection {
   email: HTMLInputElement;

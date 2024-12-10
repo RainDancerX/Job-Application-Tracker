@@ -164,7 +164,7 @@ function Index() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {statusData.map((entry: any, index: number) => (
+                {statusData.map((_: any, index: number) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}
@@ -213,7 +213,7 @@ function Index() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {industryData.map((entry: any, index: number) => (
+                {industryData.map((_: any, index: number) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}

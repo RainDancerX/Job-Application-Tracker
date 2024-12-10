@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-11-12 15:29:13
- * @LastEditTime: 2024-12-09 00:54:13
+ * @LastEditTime: 2024-12-09 17:26:39
  * @Description:
  */
 import { Link } from '@/components/ui/link';
@@ -103,13 +103,15 @@ function RootComponent() {
                       variant="default"
                       onClick={async () => {
                         await auth.logout();
-                        window.location.href = '/JAT/login';
-                        // navigate({
-                        //   to: '/login',
-                        //   search: {
-                        //     redirect: '/JAT/login',
-                        //   },
-                        // });
+                        window.location.href = '/JAT/';
+                        // setTimeout(() => {
+                        //   navigate({
+                        //     to: '/login',
+                        //     search: {
+                        //       redirect: '/JAT/login',
+                        //     },
+                        //   });
+                        // }, 300);
                       }}
                     >
                       Sign Out

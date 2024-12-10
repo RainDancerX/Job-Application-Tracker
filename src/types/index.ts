@@ -7,7 +7,7 @@
 export interface OfferDetails {
   salary: string;
   benefits: string[];
-  joiningDate: string;
+  joiningDate?: string;
 }
 
 export interface JobApplication {
