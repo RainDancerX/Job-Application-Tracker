@@ -1,7 +1,7 @@
 /*
  * @Author: lucas Liu lantasy.io@gmail.com
  * @Date: 2024-12-08 16:15:40
- * @LastEditTime: 2024-12-10 01:54:10
+ * @LastEditTime: 2024-12-14 03:50:27
  * @Description:
  */
 import { createFileRoute, useRouter } from '@tanstack/react-router';
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useReducer } from 'react';
 import { ApplicationDialog } from '@/components/ApplicationDialog';
 import { Timestamp } from 'firebase/firestore';
 import {
@@ -38,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoaderData {
   applications: JobApplication[];
@@ -109,23 +110,93 @@ function getPriorityColor(priority: JobApplication['priorityLevel']) {
   }
 }
 
+// Define action types
+type Action =
+  | { type: 'OPEN_ADD' }
+  | { type: 'OPEN_EDIT'; application: JobApplication }
+  | { type: 'OPEN_DELETE'; id: string }
+  | { type: 'CLOSE_DIALOG' }
+  | { type: 'CLOSE_DELETE' };
+
+// Define state type
+interface DialogState {
+  isDialogOpen: boolean;
+  isDeleteDialogOpen: boolean;
+  selectedApplication: JobApplication | null;
+  applicationToDelete: string | null;
+}
+
+// Initial state
+const initialState: DialogState = {
+  isDialogOpen: false,
+  isDeleteDialogOpen: false,
+  selectedApplication: null,
+  applicationToDelete: null,
+};
+
+// Reducer function
+function dialogReducer(state: DialogState, action: Action): DialogState {
+  switch (action.type) {
+    case 'OPEN_ADD':
+      return {
+        ...state,
+        isDialogOpen: true,
+        selectedApplication: null,
+      };
+    case 'OPEN_EDIT':
+      return {
+        ...state,
+        isDialogOpen: true,
+        selectedApplication: action.application,
+      };
+    case 'OPEN_DELETE':
+      return {
+        ...state,
+        isDeleteDialogOpen: true,
+        applicationToDelete: action.id,
+      };
+    case 'CLOSE_DIALOG':
+      return {
+        ...state,
+        isDialogOpen: false,
+        selectedApplication: null,
+      };
+    case 'CLOSE_DELETE':
+      return {
+        ...state,
+        isDeleteDialogOpen: false,
+        applicationToDelete: null,
+      };
+    default:
+      return state;
+  }
+}
+
 function ApplicationsPage() {
   const router = useRouter();
   const { applications, isLoading } = Route.useLoaderData() as LoaderData;
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [applicationToDelete, setApplicationToDelete] = useState<string | null>(
-    null
-  );
-  const [selectedApplication, setSelectedApplication] =
-    useState<JobApplication | null>(null);
+  const [dialogState, dispatch] = useReducer(dialogReducer, initialState);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
+  const { toast } = useToast();
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!applications) {
+    toast({
+      variant: 'destructive',
+      title: 'Error',
+      description: 'Failed to load applications. Please refresh the page.',
+    });
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <p className="text-destructive">Failed to load applications</p>
       </div>
     );
   }
@@ -137,33 +208,47 @@ function ApplicationsPage() {
   const currentApplications = applications.slice(startIndex, endIndex);
 
   const handleEdit = (application: JobApplication) => {
-    setSelectedApplication(application);
-    setIsDialogOpen(true);
+    dispatch({ type: 'OPEN_EDIT', application });
   };
 
   const handleAdd = () => {
-    setSelectedApplication(null);
-    setIsDialogOpen(true);
+    dispatch({ type: 'OPEN_ADD' });
   };
 
   const handleClose = async () => {
-    setSelectedApplication(null);
-    setIsDialogOpen(false);
-    // Invalidate the route data to refresh applications
+    dispatch({ type: 'CLOSE_DIALOG' });
+    toast({
+      title: 'Success!',
+      description: 'Application has been saved successfully.',
+    });
     await router.invalidate();
   };
 
   const handleDelete = async (id: string) => {
-    setApplicationToDelete(id);
-    setIsDeleteDialogOpen(true);
+    dispatch({ type: 'OPEN_DELETE', id });
   };
 
   const confirmDelete = async () => {
-    if (applicationToDelete) {
-      await deleteApplication(applicationToDelete);
-      await router.invalidate();
-      setIsDeleteDialogOpen(false);
-      setApplicationToDelete(null);
+    if (dialogState.applicationToDelete) {
+      try {
+        await deleteApplication(dialogState.applicationToDelete);
+        toast({
+          title: 'Success!',
+          description: 'Application has been deleted successfully.',
+        });
+        await router.invalidate();
+        dispatch({ type: 'CLOSE_DELETE' });
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Failed to delete application',
+        });
+        dispatch({ type: 'CLOSE_DELETE' });
+      }
     }
   };
 
@@ -289,13 +374,16 @@ function ApplicationsPage() {
       )}
 
       <ApplicationDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        application={selectedApplication}
+        open={dialogState.isDialogOpen}
+        onOpenChange={(open) => !open && dispatch({ type: 'CLOSE_DIALOG' })}
+        application={dialogState.selectedApplication}
         onClose={handleClose}
       />
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog
+        open={dialogState.isDeleteDialogOpen}
+        onOpenChange={(open) => !open && dispatch({ type: 'CLOSE_DELETE' })}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Application</DialogTitle>
@@ -307,7 +395,7 @@ function ApplicationsPage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
+              onClick={() => dispatch({ type: 'CLOSE_DELETE' })}
             >
               Cancel
             </Button>

@@ -12,13 +12,20 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import type { JobApplication } from '@/types';
+import * as z from 'zod';
+
+// Zod schema
+const emailSchema = z
+  .string()
+  .email('Invalid email address')
+  .transform((email) => email.replace(/[.#$[\]]/g, '_'));
 
 const getUserCollection = () => {
   const user = auth.currentUser;
   if (!user?.email) {
     throw new Error('Please sign in to access your applications');
   }
-  const safeEmail = user.email.replace(/[.#$[\]]/g, '_');
+  const safeEmail = emailSchema.parse(user.email);
   return `users/${safeEmail}/job_applications`;
 };
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CalendarDays } from 'lucide-react';
-// import { JobApplication } from '@/types';
+import { JobApplication } from '@/types';
 import {
   PieChart,
   Pie,
@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { fetchApplications } from '@/lib/api';
 import { auth } from '@/lib/firebase';
+import { useMemo } from 'react';
 
 export const Route = createFileRoute('/(app)/')({
   loader: async () => {
@@ -42,7 +43,6 @@ export const Route = createFileRoute('/(app)/')({
     }
   },
   component: Index,
-  // Add error boundary
   errorComponent: ({ error }) => (
     <div className="flex justify-center items-center h-[50vh]">
       <p className="text-destructive">{error.message}</p>
@@ -62,84 +62,130 @@ const COLORS = [
 function Index() {
   const { applications } = Route.useLoaderData();
 
-  // Status Distribution Data
-  const statusData = applications.reduce((acc: any[], app) => {
-    const existingStatus = acc.find((item) => item.name === app.status);
-    if (existingStatus) {
-      existingStatus.value++;
-    } else {
-      acc.push({ name: app.status, value: 1 });
-    }
-    return acc;
-  }, []);
-
-  // Industry Distribution Data
-  const industryData = applications.reduce((acc: any[], app) => {
-    if (!app.companyIndustry) return acc;
-    const existingIndustry = acc.find(
-      (item) => item.name === app.companyIndustry
+  // status counts
+  const statusCounts = useMemo(() => {
+    return applications.reduce(
+      (acc, app) => {
+        acc[app.status] = (acc[app.status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<JobApplication['status'], number>
     );
-    if (existingIndustry) {
-      existingIndustry.value++;
-    } else {
-      acc.push({ name: app.companyIndustry, value: 1 });
-    }
-    return acc;
-  }, []);
+  }, [applications]);
 
-  // Skills Distribution Data
-  const skillsData = applications
-    .reduce((acc: any[], app) => {
-      app.skillsRequired?.forEach((skill) => {
-        const existingSkill = acc.find((item) => item.name === skill);
-        if (existingSkill) {
-          existingSkill.value++;
-        } else {
-          acc.push({ name: skill, value: 1 });
-        }
-      });
-      return acc;
-    }, [])
-    .sort((a: any, b: any) => b.value - a.value)
-    .slice(0, 10); // Top 10 skills
+  // application timeline data
+  const timelineData = useMemo(() => {
+    // Get current date and 11 months ago
+    const currentDate = new Date();
+    const monthsAgo = new Date(
+      Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() - 11, 1)
+    );
 
-  // Applications Over Time Data
-  const timelineData = (() => {
-    // Create array of all months in current year
-    const currentYear = new Date().getFullYear();
-    const months = Array.from({ length: 12 }, (_, i) => {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    const last12Months = months.map((monthName, index) => {
+      const date = new Date(Date.UTC(monthsAgo.getUTCFullYear(), index, 1));
+
       return {
-        name: new Date(currentYear, i).toLocaleString('default', {
-          month: 'short',
-        }),
+        name: monthName,
+        fullDate: `${monthName} ${date.getUTCFullYear()}`,
         count: 0,
+        year: date.getUTCFullYear(),
+        month: index,
       };
     });
 
-    // Fill in the application counts for the current year
+    // Fill in the application counts
     applications.forEach((app) => {
-      const date = new Date(app.applicationDate);
-      if (date.getFullYear() === currentYear) {
-        const monthIndex = date.getMonth();
-        months[monthIndex].count++;
+      const appDate = new Date(app.applicationDate);
+      const appUTCDate = new Date(
+        Date.UTC(appDate.getUTCFullYear(), appDate.getUTCMonth(), 1)
+      );
+
+      const monthIndex = last12Months.findIndex(
+        (m) =>
+          appUTCDate.getUTCFullYear() === m.year &&
+          appUTCDate.getUTCMonth() === m.month
+      );
+      if (monthIndex !== -1) {
+        last12Months[monthIndex].count++;
       }
     });
 
-    return months;
-  })();
+    return last12Months;
+  }, [applications]);
 
-  // Upcoming Interviews
-  const upcomingInterviews = applications
-    .filter(
-      (app) =>
-        app.status === 'Interview Scheduled' &&
-        new Date(app.interviewDate) >= new Date()
-    )
-    .sort(
-      (a, b) =>
-        new Date(a.interviewDate).getTime() -
-        new Date(b.interviewDate).getTime()
+  // Memoize pie chart data
+  const pieChartData = useMemo(() => {
+    return Object.entries(statusCounts).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  }, [statusCounts]);
+
+  // Memoize upcoming interviews
+  const upcomingInterviews = useMemo(() => {
+    return applications
+      .filter(
+        (app) =>
+          app.status === 'Interview Scheduled' &&
+          new Date(app.interviewDate) >= new Date()
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.interviewDate).getTime() -
+          new Date(b.interviewDate).getTime()
+      );
+  }, [applications]);
+
+  // Memoize industry data
+  const industryData = useMemo(() => {
+    return applications.reduce(
+      (acc: { name: string; value: number }[], app) => {
+        if (!app.companyIndustry) return acc;
+        const existingIndustry = acc.find(
+          (item) => item.name === app.companyIndustry
+        );
+        if (existingIndustry) {
+          existingIndustry.value++;
+        } else {
+          acc.push({ name: app.companyIndustry, value: 1 });
+        }
+        return acc;
+      },
+      []
     );
+  }, [applications]);
+
+  // Memoize skills data
+  const skillsData = useMemo(() => {
+    return applications
+      .reduce((acc: { name: string; value: number }[], app) => {
+        app.skillsRequired?.forEach((skill) => {
+          const existingSkill = acc.find((item) => item.name === skill);
+          if (existingSkill) {
+            existingSkill.value++;
+          } else {
+            acc.push({ name: skill, value: 1 });
+          }
+        });
+        return acc;
+      }, [])
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10); // Top 10 skills
+  }, [applications]);
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
@@ -153,7 +199,7 @@ function Index() {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={statusData}
+                data={pieChartData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -164,12 +210,14 @@ function Index() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {statusData.map((_: any, index: number) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
+                {pieChartData.map(
+                  (_: { name: string; value: number }, index: number) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  )
+                )}
               </Pie>
               <Tooltip />
             </PieChart>
@@ -213,12 +261,14 @@ function Index() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {industryData.map((_: any, index: number) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
+                {industryData.map(
+                  (_: { name: string; value: number }, index: number) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  )
+                )}
               </Pie>
               <Tooltip />
             </PieChart>
@@ -249,9 +299,29 @@ function Index() {
             <LineChart data={timelineData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#8884d8" />
+              <YAxis
+                allowDecimals={false}
+                domain={[
+                  0,
+                  Math.max(...timelineData.map((item) => item.count)),
+                ]}
+                tickFormatter={(value) => Math.round(value).toString()}
+              />
+              <Tooltip
+                labelFormatter={(label) => {
+                  const dataPoint = timelineData.find(
+                    (item) => item.name === label
+                  );
+                  return dataPoint?.fullDate || label;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#8884d8"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
